@@ -1,18 +1,27 @@
+<<<<<<< HEAD
 
 
 
 
+=======
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import '../config/api_config.dart';
 
+<<<<<<< HEAD
 
 import '../config/constants.dart';
 import '../services/token_storage.dart';
 import '../utilis/network_logger.dart';
 import 'api_service.dart';
+=======
+import '../config/constant.dart';
+import '../services/token_storage.dart';
+import '../utilis/network_logger.dart';
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
 
 
 
@@ -38,7 +47,11 @@ class AuthService {
           'Accept': 'application/json',
           'X-Requested-With': 'XMLHttpRequest',
         },
+<<<<<<< HEAD
         body: {'email': email, 'password': password, 'role': 'Counter'}, // Add role here
+=======
+        body: {'email': email, 'password': password, 'role': 'Kitchen'}, // Add role here
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
       );
 
       var response = await _attemptLogin(client, url, email, password);
@@ -57,7 +70,11 @@ class AuthService {
             'Accept': 'application/json',
             'X-Requested-With': 'XMLHttpRequest',
           },
+<<<<<<< HEAD
           body: {'email': email, 'password': password, 'role': 'Counter'}, // Add role here
+=======
+          body: {'email': email, 'password': password, 'role': 'Kitchen'}, // Add role here
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
         );
 
         response = await _attemptLogin(client, url, email, password);
@@ -91,7 +108,11 @@ class AuthService {
       body: jsonEncode({
         'email': email,
         'password': password,
+<<<<<<< HEAD
         'role': 'Counter', // Explicitly send kitchen role
+=======
+        'role': 'Kitchen', // Explicitly send kitchen role
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
       }),
     ).timeout(AppConstants.apiTimeout);
   }

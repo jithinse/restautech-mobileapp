@@ -1,7 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
+<<<<<<< HEAD
         android:label="Counter App"
+=======
+        android:label="Kitchen App"
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

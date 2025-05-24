@@ -1,6 +1,9 @@
+<<<<<<< HEAD
 
 
 
+=======
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
@@ -52,11 +55,19 @@ class LoginController extends State<LoginPage> {
         if (response.containsKey('user')) {
           final userData = response['user'];
           // Ensure role is set to kitchen
+<<<<<<< HEAD
           userData['role'] = 'Counter';
           final user = UserModel.fromJson(userData);
 
           await TokenStorage.setUserData(jsonEncode(userData));
           await TokenStorage.setUserRole('Counter');
+=======
+          userData['role'] = 'Kitchen';
+          final user = UserModel.fromJson(userData);
+
+          await TokenStorage.setUserData(jsonEncode(userData));
+          await TokenStorage.setUserRole('Kitchen');
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
 
           if (mounted) {
             Navigator.of(context).pushReplacement(

@@ -1,6 +1,11 @@
 {
+<<<<<<< HEAD
     "name": "waiterapr04",
     "short_name": "waiterapr04",
+=======
+    "name": "counterapr05",
+    "short_name": "counterapr05",
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

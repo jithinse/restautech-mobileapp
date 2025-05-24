@@ -1,12 +1,58 @@
+<<<<<<< HEAD
 
+=======
+//
+//
+// class TokenStorage {
+//   static String? _token;
+//   static String? _userData;
+//   static String? _userRole; // Add role storage
+//
+//   static Future<void> setToken(String token) async {
+//     _token = token;
+//   }
+//
+//   static Future<String?> getToken() async {
+//     return _token;
+//   }
+//
+//   static Future<void> setUserData(String userData) async {
+//     _userData = userData;
+//   }
+//
+//   static Future<String?> getUserData() async {
+//     return _userData;
+//   }
+//
+//   // Add role management methods
+//   static Future<void> setUserRole(String role) async {
+//     _userRole = role;
+//   }
+//
+//   static Future<String?> getUserRole() async {
+//     return _userRole ?? 'Kitchen'; // Default to kitchen if not set
+//   }
+//
+//   static Future<void> clear() async {
+//     _token = null;
+//     _userData = null;
+//     _userRole = null;
+//   }
+// }
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
 
 import 'package:shared_preferences/shared_preferences.dart';
 
 class TokenStorage {
+<<<<<<< HEAD
+=======
+  // Keys for SharedPreferences
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
   static const String _tokenKey = 'auth_token';
   static const String _userDataKey = 'user_data';
   static const String _userRoleKey = 'user_role';
 
+<<<<<<< HEAD
   static String? _token;
   static String? _userData;
   static String? _userRole;
@@ -14,10 +60,15 @@ class TokenStorage {
   static Future<void> setToken(String token) async {
     _token = token;
     // Save to SharedPreferences
+=======
+  // Set token in persistent storage
+  static Future<void> setToken(String token) async {
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_tokenKey, token);
   }
 
+<<<<<<< HEAD
   static Future<String?> getToken() async {
     if (_token == null) {
       // Try to get from SharedPreferences if not in memory
@@ -30,10 +81,21 @@ class TokenStorage {
   static Future<void> setUserData(String userData) async {
     _userData = userData;
     // Save to SharedPreferences
+=======
+  // Get token from persistent storage
+  static Future<String?> getToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_tokenKey);
+  }
+
+  // Set user data in persistent storage
+  static Future<void> setUserData(String userData) async {
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userDataKey, userData);
   }
 
+<<<<<<< HEAD
   static Future<String?> getUserData() async {
     if (_userData == null) {
       // Try to get from SharedPreferences if not in memory
@@ -46,10 +108,21 @@ class TokenStorage {
   static Future<void> setUserRole(String role) async {
     _userRole = role;
     // Save to SharedPreferences
+=======
+  // Get user data from persistent storage
+  static Future<String?> getUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userDataKey);
+  }
+
+  // Set user role in persistent storage
+  static Future<void> setUserRole(String role) async {
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_userRoleKey, role);
   }
 
+<<<<<<< HEAD
   static Future<String?> getUserRole() async {
     if (_userRole == null) {
       // Try to get from SharedPreferences if not in memory
@@ -59,6 +132,15 @@ class TokenStorage {
     return _userRole ?? 'Counter'; // Default to Counter if not set
   }
 
+=======
+  // Get user role from persistent storage
+  static Future<String?> getUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_userRoleKey) ?? 'Kitchen'; // Default to kitchen if not set
+  }
+
+  // Clear all authentication data
+>>>>>>> 99e1abe077ecd4f17b54ef1dd4154a9f4432b6a5
   static Future<void> clear() async {
     try {
       print('Starting to clear token storage...');
