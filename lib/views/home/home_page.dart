@@ -1,9 +1,6 @@
 
 
-
-
-
-
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -33,32 +30,132 @@ class _HomePageState extends State<HomePage> {
   final refreshKey = GlobalKey<RefreshIndicatorState>();
   final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
 
+  // Real-time update variables
+  late Timer _orderRefreshTimer;
+  List<Order> _currentOrders = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+  int _lastOrderCount = 0;
+
+  // Settings for real-time updates
+  final Duration _refreshInterval = const Duration(seconds: 10);
+
   @override
   void initState() {
     super.initState();
     _loadOrders();
+
+    // Start real-time updates
+    _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    // Cancel the timer when the widget is disposed
+    _orderRefreshTimer.cancel();
+    super.dispose();
+  }
+
+  void _startAutoRefresh() {
+    // Initial load
+    _fetchOrdersRealtime();
+
+    // Set up timer for regular updates
+    _orderRefreshTimer = Timer.periodic(_refreshInterval, (timer) {
+      if (mounted) {
+        _fetchOrdersRealtime();
+      }
+    });
+  }
+
+  Future<void> _fetchOrdersRealtime() async {
+    if (!mounted) return;
+
+    try {
+      final orderResponse = await apiService.fetchOrders();
+
+      // Check if there are new orders
+      bool hasNewOrders = false;
+      if (_currentOrders.isNotEmpty && orderResponse.data.length > _lastOrderCount) {
+        hasNewOrders = true;
+      }
+
+      setState(() {
+        _currentOrders = orderResponse.data;
+        _lastOrderCount = _currentOrders.length;
+        _isLoading = false;
+        _errorMessage = null;
+      });
+
+      // Show notification if there are new orders
+      if (hasNewOrders && mounted) {
+        _showNewOrderNotification();
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _errorMessage = e.toString();
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  void _showNewOrderNotification() {
+    // Show a snackbar when new orders arrive
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: const [
+            Icon(Icons.notifications_active, color: Colors.white),
+            SizedBox(width: 10),
+            Text('New orders have arrived!'),
+          ],
+        ),
+        backgroundColor: Colors.green,
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'VIEW',
+          textColor: Colors.white,
+          onPressed: () {
+            // Scroll to the top to see new orders
+            // If you have a ScrollController, you could use it here
+          },
+        ),
+      ),
+    );
   }
 
   Future<void> _loadOrders() async {
     setState(() {
+      _isLoading = true;
       futureOrders = apiService.fetchOrders();
     });
+
+    try {
+      final orders = await futureOrders;
+      setState(() {
+        _currentOrders = orders.data;
+        _lastOrderCount = _currentOrders.length;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _errorMessage = e.toString();
+        _isLoading = false;
+      });
+    }
   }
 
   int _getTimeElapsedMinutes(Order order) {
     final DateTime now = DateTime.now();
-    final DateTime createdAt = order.createdAt ?? now;
+    final DateTime createdAt = order.createdAt;
     return now.difference(createdAt).inMinutes;
   }
 
   bool _isHighPriority(Order order) {
     return _getTimeElapsedMinutes(order) > 15;
   }
-
-
-
-
-
 
   Future<void> _logout() async {
     try {
@@ -99,11 +196,8 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
+
   @override
-
-
-
-
   Widget build(BuildContext context) {
     return Scaffold(
       key: _scaffoldKey,
@@ -117,7 +211,7 @@ class _HomePageState extends State<HomePage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: _loadOrders,
+            onPressed: _fetchOrdersRealtime,
           ),
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.white),
@@ -129,37 +223,36 @@ class _HomePageState extends State<HomePage> {
       backgroundColor: Colors.grey[100],
       body: RefreshIndicator(
         key: refreshKey,
-        onRefresh: _loadOrders,
-        child: FutureBuilder<OrderResponse>(
-          future: futureOrders,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator(color: Colors.redAccent));
-            } else if (snapshot.hasError) {
-              return _buildErrorView(snapshot);
-            } else if (!snapshot.hasData || snapshot.data!.data.isEmpty) {
-              return _buildEmptyView();
-            }
-
-            final orders = snapshot.data?.data ?? [];
-            final pendingOrders = orders.where((o) => o.status == 'pending').toList();
-            final preparingOrders = orders.where((o) => o.status == 'preparing').toList();
-            final readyOrders = orders.where((o) => o.status == 'ready').toList();
-            final completedOrders = orders.where((o) => o.status == 'completed').toList();
-
-            return _buildMainContent(
-              pendingOrders,
-              preparingOrders,
-              readyOrders,
-              completedOrders,
-              orders.length,
-            );
-          },
-        ),
+        onRefresh: _fetchOrdersRealtime,
+        child: _buildOrdersView(),
       ),
     );
   }
-  Widget _buildErrorView(AsyncSnapshot<OrderResponse> snapshot) {
+
+  Widget _buildOrdersView() {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator(color: Colors.redAccent));
+    } else if (_errorMessage != null) {
+      return _buildErrorView();
+    } else if (_currentOrders.isEmpty) {
+      return _buildEmptyView();
+    }
+
+    final pendingOrders = _currentOrders.where((o) => o.status == 'pending').toList();
+    final preparingOrders = _currentOrders.where((o) => o.status == 'preparing').toList();
+    final readyOrders = _currentOrders.where((o) => o.status == 'ready').toList();
+    final completedOrders = _currentOrders.where((o) => o.status == 'completed').toList();
+
+    return _buildMainContent(
+      pendingOrders,
+      preparingOrders,
+      readyOrders,
+      completedOrders,
+      _currentOrders.length,
+    );
+  }
+
+  Widget _buildErrorView() {
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -172,14 +265,14 @@ class _HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           Text(
-            '${snapshot.error}',
+            _errorMessage ?? 'Unknown error',
             style: TextStyle(fontSize: 14, color: Colors.grey[600]),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 24),
           ElevatedButton(
-            onPressed: _loadOrders,
+            onPressed: _fetchOrdersRealtime,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.redAccent[700],
               foregroundColor: Colors.white,
@@ -219,9 +312,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
-
-
 
   Widget _buildMainContent(
       List<Order> pendingOrders,
@@ -344,11 +434,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-
-
-
-
-
   void _showOrderDetails(BuildContext context, Order order) {
     final isHighPriority = _isHighPriority(order);
     final formattedTime = _getTimeElapsedMinutes(order) > 0
@@ -363,7 +448,7 @@ class _HomePageState extends State<HomePage> {
         statusColor: statusColor,
         isHighPriority: isHighPriority,
         formattedTime: formattedTime,
-        onStatusChange: _loadOrders,
+        onStatusChange: _fetchOrdersRealtime,
       ),
     );
   }
@@ -391,6 +476,14 @@ class _HomePageState extends State<HomePage> {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.settings),
+            title: const Text('Settings'),
+            onTap: () {
+              Navigator.pop(context);
+            },
+          ),
+          const Divider(),
+          ListTile(
             leading: const Icon(Icons.logout, color: Colors.red),
             title: const Text('Logout', style: TextStyle(color: Colors.red)),
             onTap: () {
@@ -402,7 +495,6 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
-
 
   Color _getStatusColor(String status) {
     switch (status) {
